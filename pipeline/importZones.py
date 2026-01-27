@@ -6,29 +6,6 @@ from sqlalchemy import create_engine
 from tqdm.auto import tqdm
 import click
 
-dtype = {
-    "VendorID": "Int64",
-    "passenger_count": "Int64",
-    "trip_distance": "float64",
-    "RatecodeID": "Int64",
-    "store_and_fwd_flag": "string",
-    "PULocationID": "Int64",
-    "DOLocationID": "Int64",
-    "payment_type": "Int64",
-    "fare_amount": "float64",
-    "extra": "float64",
-    "mta_tax": "float64",
-    "tip_amount": "float64",
-    "tolls_amount": "float64",
-    "improvement_surcharge": "float64",
-    "total_amount": "float64",
-    "congestion_surcharge": "float64"
-}
-
-parse_dates = [
-    "tpep_pickup_datetime",
-    "tpep_dropoff_datetime"
-]
 
 
 def ingest_data(
@@ -39,8 +16,8 @@ def ingest_data(
 ) -> pd.DataFrame:
     df_iter = pd.read_csv(
         url,
-        dtype=dtype,
-        parse_dates=parse_dates,
+        #dtype=dtype,
+        #parse_dates=parse_dates,
         iterator=True,
         chunksize=chunksize
     )
@@ -81,14 +58,14 @@ def ingest_data(
 @click.option("--pg-port", default="5432", help="Postgres port")
 @click.option("--pg-db", default="ny_taxi", help="Postgres database")
 @click.option("--conn", default=None, help="Full SQLAlchemy connection string (overrides pg-*)")
-@click.option("--year", default=2021, type=int, help="Year of the dataset")
-@click.option("--month", default=1, type=int, help="Month of the dataset (1-12)")
+#@click.option("--year", default=2021, type=int, help="Year of the dataset")
+#@click.option("--month", default=1, type=int, help="Month of the dataset (1-12)")
 @click.option("--chunksize", default=100000, type=int, help="CSV chunk size")
-@click.option("--target-table", default="yellow_taxi_data", help="Target DB table name")
-@click.option("--url-prefix", default="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow", help="URL prefix for the dataset")
-def cli(pg_user, pg_pass, pg_host, pg_port, pg_db, conn, year, month, chunksize, target_table, url_prefix):
+@click.option("--target-table", default="taxi_zones", help="Target DB table name")
+#@click.option("--url-prefix", default="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow", help="URL prefix for the dataset")
+def cli(pg_user, pg_pass, pg_host, pg_port, pg_db, conn, chunksize, target_table):
     """
-    Ingest NYC yellow taxi data into Postgres.
+    Ingest NYC taxi zones data into Postgres.
     """
     if conn:
         engine = create_engine(conn)
@@ -96,7 +73,7 @@ def cli(pg_user, pg_pass, pg_host, pg_port, pg_db, conn, year, month, chunksize,
         conn_str = f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}'
         engine = create_engine(conn_str)
 
-    url = f'{url_prefix}/yellow_tripdata_{year:04d}-{month:02d}.csv.gz'
+    url = f'taxi_zone_lookup.csv'
 
     ingest_data(
         url=url,
